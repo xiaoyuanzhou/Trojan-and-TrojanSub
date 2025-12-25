@@ -8,15 +8,16 @@ import { connect } from 'cloudflare:sockets';
 
 // ==================== 1. 全局配置 ====================
 const 全局配置 = {
-    密钥: "abc", // 【重要】这是 Trojan 密码，同时也是管理面板的访问路径
+    密钥: "abc", // 【重要】这是 Trojan 密码
+    配置面板路径: "config", // 配置面板访问路径前缀（访问方式：/config_ab.html，其中ab是密钥前2位）
     默认兜底反代: "ProxyIP.US.CMLiussss.net:443",
     
     // 策略开关
     启用普通反代: true,
     启用S5: true,
     启用全局S5: false,
-    S5账号列表: ["user:pass@host:port"], 
-    强制S5名单: ["ip.sb", "ip125.com", "test.org", "openai.com"],
+    S5账号列表: [], 
+    强制S5名单: [],
 
     // 运行参数
     首次数据包超时: 5000,
@@ -532,13 +533,17 @@ const DASHBOARD_HTML = `
 
         <div id="outputs"></div>
 
-        <div class="footer">ReactionMax Engine v4.1.0 | Secured by TrojanStallion</div>
+        <div class="footer">ReactionMax Engine v4.1.0 | Secured by TrojanStallion<br><small style="color: #64748b; margin-top: 8px; display: block;">💡 访问路径格式：/配置面板路径_密钥前2位.html</small></div>
     </div>
 
     <script>
-        // 初始化：从 URL 路径自动获取 Key
-        const currentPath = window.location.pathname.replace('/', '');
-        if(currentPath && currentPath !== 'abc') document.getElementById('key').value = currentPath;
+        // 初始化：从 URL 路径智能提取 Key（支持 /config_ab.html 格式）
+        const currentPath = window.location.pathname;
+        const match = currentPath.match(/\/\w+_(\w{2})\.html$/);
+        if(match) {
+            // 从 URL 提取前2位，设置为默认值（用户需补全完整密钥）
+            document.getElementById('key').value = match[1];
+        }
 
         function generate() {
             const address = document.getElementById('address').value.trim();
@@ -624,15 +629,15 @@ const FAKE_INDEX_HTML = `
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechNote | Digital Life</title>
+    <title>技术笔记 | 开发者日常</title>
     <style>
-        body { font-family: 'Georgia', serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; background: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; line-height: 1.8; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; background: #fff; }
         header { border-bottom: 1px solid #eee; margin-bottom: 40px; padding-bottom: 20px; }
-        h1 { font-size: 2.2em; margin: 0; color: #2c3e50; letter-spacing: -1px; }
-        .meta { color: #888; font-size: 0.9em; margin-top: 5px; font-style: italic; }
+        h1 { font-size: 2.2em; margin: 0; color: #2c3e50; letter-spacing: 2px; }
+        .meta { color: #888; font-size: 0.9em; margin-top: 5px; }
         article { margin-bottom: 50px; }
-        h2 { font-size: 1.6em; color: #34495e; margin-bottom: 10px; font-weight: normal; }
-        p { margin-bottom: 15px; color: #555; }
+        h2 { font-size: 1.6em; color: #34495e; margin-bottom: 10px; font-weight: 500; }
+        p { margin-bottom: 15px; color: #555; text-align: justify; }
         .read-more { color: #3498db; text-decoration: none; font-weight: bold; font-size: 0.9em; }
         .read-more:hover { text-decoration: underline; }
         footer { margin-top: 80px; border-top: 1px solid #eee; padding-top: 20px; font-size: 0.8em; color: #aaa; text-align: center; }
@@ -640,34 +645,36 @@ const FAKE_INDEX_HTML = `
 </head>
 <body>
     <header>
-        <h1>TechNote</h1>
-        <div class="meta">Thoughts on technology, coding, and the digital future.</div>
+        <h1>技术笔记</h1>
+        <div class="meta">记录代码与架构的思考片段</div>
     </header>
 
     <article>
-        <h2>The Future of Cloud Computing</h2>
-        <div class="meta">Posted on November 15, 2024</div>
-        <p>As we move further into the digital age, serverless architectures are becoming increasingly prevalent. The ability to deploy code to the edge reduces latency and improves user experience significantly.</p>
-        <p>Developers are no longer bound by traditional infrastructure management, allowing for faster iteration cycles and reduced operational overhead. This shift is not just technical but cultural...</p>
-        <a href="#" class="read-more">Read more →</a>
+        <h2>边缘计算改变了什么</h2>
+        <div class="meta">发布于 2024年11月15日</div>
+        <p>当应用逻辑从中心化的服务器迁移到靠近用户的边缘节点，延迟不再是瓶颈。CDN 不只是缓存静态资源，现在它能执行你的业务代码，在全球任意位置响应请求。</p>
+        <p>这种架构让开发者摆脱了传统运维的束缚，部署变得像推送代码一样简单。更重要的是，它重新定义了"服务器"的概念——也许未来我们不再需要关心机器在哪里，只需要关心代码的逻辑...</p>
+        <a href="#" class="read-more">继续阅读 →</a>
     </article>
 
     <article>
-        <h2>Understanding WebSockets</h2>
-        <div class="meta">Posted on October 28, 2024</div>
-        <p>Real-time communication has transformed how we interact with web applications. WebSockets provide a persistent connection between client and server, enabling instant data transfer without the overhead of HTTP polling.</p>
-        <a href="#" class="read-more">Read more →</a>
+        <h2>长连接的艺术</h2>
+        <div class="meta">发布于 2024年10月28日</div>
+        <p>HTTP 请求-响应模式在传统场景下足够高效，但当你需要实时推送消息时，轮询就显得笨拙而低效。WebSocket 的出现彻底改变了这一切，它在客户端和服务端之间建立了一条持久的双向通道。</p>
+        <p>从在线协作工具到实时游戏，长连接技术正在驱动着新一代的互联网应用。理解它的原理，就能更好地构建响应式体验。</p>
+        <a href="#" class="read-more">继续阅读 →</a>
     </article>
 
     <article>
-        <h2>Minimalism in Digital Design</h2>
-        <div class="meta">Posted on September 12, 2024</div>
-        <p>In a world of constant noise, digital minimalism offers a breath of fresh air. It focuses on the essential elements of design, stripping away the superfluous to reveal the core message.</p>
-        <a href="#" class="read-more">Read more →</a>
+        <h2>简约不简单</h2>
+        <div class="meta">发布于 2024年9月12日</div>
+        <p>好的界面设计从来不是堆砌功能，而是做减法。去掉不必要的装饰，保留核心交互，让用户第一时间聚焦在最重要的事情上。</p>
+        <p>数字极简主义不仅是审美选择，更是对用户时间和注意力的尊重。当信息过载成为常态，克制反而成了稀缺品质。</p>
+        <a href="#" class="read-more">继续阅读 →</a>
     </article>
 
     <footer>
-        &copy; 2024 TechNote Blog. All rights reserved. <br> Powered by Edge Computing.
+        &copy; 2024 技术笔记博客 · 保留所有权利 <br> 由边缘计算驱动
     </footer>
 </body>
 </html>
@@ -691,9 +698,11 @@ export default {
             // 2. 路由分流逻辑
             const 路径 = URL对象.pathname;
             const 配置密钥 = 全局配置.密钥;
-
-            // 逻辑：如果路径完全等于 "/密钥"，显示面板
-            if (路径 === `/${配置密钥}` || 路径 === `/${配置密钥}/`) {
+            const 面板路径前缀 = 全局配置.配置面板路径;
+            const 密钥前缀 = 配置密钥.slice(0, 2);
+            
+            // 逻辑：如果路径匹配 "/{面板路径前缀}_{密钥前2位}.html"，显示面板
+            if (路径 === `/${面板路径前缀}_${密钥前缀}.html`) {
                 return new Response(DASHBOARD_HTML, {
                     status: 200,
                     headers: { 'Content-Type': 'text/html; charset=utf-8' }
