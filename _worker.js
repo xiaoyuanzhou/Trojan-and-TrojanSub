@@ -537,14 +537,6 @@ const DASHBOARD_HTML = `
     </div>
 
     <script>
-        // 初始化：从 URL 路径智能提取 Key（支持 /config_ab.html 格式）
-        const currentPath = window.location.pathname;
-        const match = currentPath.match(/\/\w+_(\w{2})\.html$/);
-        if(match) {
-            // 从 URL 提取前2位，设置为默认值（用户需补全完整密钥）
-            document.getElementById('key').value = match[1];
-        }
-
         function generate() {
             const address = document.getElementById('address').value.trim();
             const workerHost = window.location.hostname;
@@ -553,6 +545,9 @@ const DASHBOARD_HTML = `
             const pyip = document.getElementById('pyip').value.trim();
 
             if (!address || !key) { alert('请完善必填信息'); return; }
+
+            const outputsDiv = document.getElementById('outputs');
+            outputsDiv.innerHTML = '';
 
             // 构建 Path
             let path = \`/my-key=\${encodeURIComponent(key)}\`;
